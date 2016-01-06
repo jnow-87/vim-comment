@@ -2,11 +2,11 @@
 "" check init state
 """"
 "{{{
-if exists("g:comment_loaded") || &compatible
+if exists("g:_loaded_comment") || &compatible
 	finish
 endif
 
-let g:comment_loaded = 1
+let g:loaded_comment = 1
 "}}}
 
 """"
