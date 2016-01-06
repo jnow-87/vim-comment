@@ -2,7 +2,7 @@
 "" check init state
 """"
 "{{{
-if exists("g:_loaded_comment") || &compatible
+if exists("g:loaded_comment") || &compatible
 	finish
 endif
 
@@ -29,7 +29,7 @@ call extend(s:marker, { "asm" : s:marker.c })
 "}}}
 
 """"
-"" local functions
+"" helper functions
 """"
 "{{{
 " \brief	set buffer-local markers depending on filetype
@@ -106,7 +106,7 @@ endfunction
 "}}}
 
 """"
-"" global functions
+"" main functions
 """"
 "{{{
 " \brief	un/comment a single line
@@ -161,7 +161,7 @@ endfunction
 " 					'l' - line type
 "
 " \return	none
-function g:do_comment(mode, c_type)
+function s:do_comment(mode, c_type)
 	if a:mode == 'v'
 		" get selection boundaries
 		let p_start = getpos("'<")
@@ -222,7 +222,7 @@ endfunction
 " \param	comment		what to do (0 = uncomment, 1 = comment)
 "
 " \return	none
-function g:do_comment_sexy(comment)
+function s:do_comment_sexy(comment)
 	" check if all sexy markers are define
 	if b:marker.blocks_l == "" || b:marker.blocks_r == "" || b:marker.blocks_m == ""
 		echoerr "sexy markers not defined"
@@ -282,12 +282,12 @@ autocmd FileType *  call <sid>update_marker()
 """"
 "{{{
 " general mappings
-nnoremap <silent> cl :call g:do_comment('n', 'l')<cr>
-nnoremap <silent> cb :call g:do_comment('n', 'b')<cr>
-vnoremap <silent> cl <esc>:call g:do_comment('v', 'l')<cr>
-vnoremap <silent> cb <esc>:call g:do_comment('v', 'b')<cr>
+nnoremap <silent> cl :call <sid>do_comment('n', 'l')<cr>
+nnoremap <silent> cb :call <sid>do_comment('n', 'b')<cr>
+vnoremap <silent> cl <esc>:call <sid>do_comment('v', 'l')<cr>
+vnoremap <silent> cb <esc>:call <sid>do_comment('v', 'b')<cr>
 
 " filetype specific mappings
-autocmd FileType c,cpp nnoremap <silent> cs :call g:do_comment_sexy(0)<cr>
-autocmd FileType c,cpp vnoremap <silent> cs <esc>:call g:do_comment_sexy(1)<cr>
+autocmd FileType c,cpp nnoremap <silent> cs :call <sid>do_comment_sexy(0)<cr>
+autocmd FileType c,cpp vnoremap <silent> cs <esc>:call <sid>do_comment_sexy(1)<cr>
 "}}}
