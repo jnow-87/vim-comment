@@ -90,8 +90,8 @@ endfunction
 " 				mr		right marker to be used
 function s:get_commented(line, start, c_type)
 	if a:c_type == 'b' && b:marker.block_l != "" && b:marker.block_r != ""
-		let p_l = <sid>marker_pos_l(a:line, b:marker.block_l, a:start)
-		let p_r = <sid>marker_pos_r(a:line, b:marker.block_r, p_l)
+		let p_l = s:marker_pos_l(a:line, b:marker.block_l, a:start)
+		let p_r = s:marker_pos_r(a:line, b:marker.block_r, p_l)
 
 		if p_l > a:start || p_r < a:start
 			let p_l = -1
@@ -100,7 +100,7 @@ function s:get_commented(line, start, c_type)
 
 		return [ (p_l == -1 || p_r == -1 ? 0 : 1), b:marker.block_l, b:marker.block_r ]
 	else
-		return [ (<sid>marker_pos_l(a:line, b:marker.line, a:start) == -1 ? 0 : 1), b:marker.line, "" ]
+		return [ (s:marker_pos_l(a:line, b:marker.line, a:start) == -1 ? 0 : 1), b:marker.line, "" ]
 	endif
 endfunction
 "}}}
@@ -130,7 +130,7 @@ function s:comment_line(lnum, start, end, marker_l, marker_r, comment)
 				   \ . a:marker_r
 				   \ . (a:end == -1 ? "" : line[a:end+1:-1])
 	else
-		let p_l = <sid>marker_pos_l(line, a:marker_l, a:start)
+		let p_l = s:marker_pos_l(line, a:marker_l, a:start)
 
 		" left marker not found
 		if p_l == -1
@@ -138,7 +138,7 @@ function s:comment_line(lnum, start, end, marker_l, marker_r, comment)
 		endif
 
 		" search for right marker
-		let p_r = <sid>marker_pos_r(line, a:marker_r, p_l)
+		let p_r = s:marker_pos_r(line, a:marker_r, p_l)
 
 		if strlen(line) == strlen(a:marker_l) + strlen(a:marker_r)
 			let line = ""
@@ -174,10 +174,10 @@ function s:do_comment(mode, c_type)
 		" get markers and commented state
 		if p_start[1] == p_end[1]
 			" if single line: only check selected range
-			let [ commented, marker_l, marker_r ] = <sid>get_commented(getline(p_start[1])[p_start[2]:-1], 0, a:c_type)
+			let [ commented, marker_l, marker_r ] = s:get_commented(getline(p_start[1])[p_start[2]:-1], 0, a:c_type)
 		else
 			" if multiple are selected check entire first line
-			let [ commented, marker_l, marker_r ] = <sid>get_commented(getline(p_start[1]), p_start[2], a:c_type)
+			let [ commented, marker_l, marker_r ] = s:get_commented(getline(p_start[1]), p_start[2], a:c_type)
 		endif
 
 		" perform commenting
@@ -185,17 +185,17 @@ function s:do_comment(mode, c_type)
 			" visual block selection
 			" 	only consider selected range
 			for lnum in range(p_start[1], p_end[1])
-				call <sid>comment_line(lnum, p_start[2], p_end[2], marker_l, marker_r, !commented)
+				call s:comment_line(lnum, p_start[2], p_end[2], marker_l, marker_r, !commented)
 			endfor
 		else
 			" other visual mode
 			if p_start[1] == p_end[1]
 				" only consider selected range for single lines
-				call <sid>comment_line(p_start[1], p_start[2], p_end[2], marker_l, marker_r, !commented)
+				call s:comment_line(p_start[1], p_start[2], p_end[2], marker_l, marker_r, !commented)
 			else
 				" considere entire line for multi-line selects
 				for lnum in range(p_start[1], p_end[1])
-					call <sid>comment_line(lnum, 0, -1, marker_l, marker_r, !commented)
+					call s:comment_line(lnum, 0, -1, marker_l, marker_r, !commented)
 				endfor
 			endif
 		endif
@@ -204,15 +204,15 @@ function s:do_comment(mode, c_type)
 		let pos = getpos('.')
 		let pos[2] -= 1
 
-		let [ commented, marker_l, marker_r ] = <sid>get_commented(getline(pos[1]), pos[2], a:c_type)
+		let [ commented, marker_l, marker_r ] = s:get_commented(getline(pos[1]), pos[2], a:c_type)
 
 		if commented
 			" consider current column when uncommenting, allowing to uncomment
 			" a single block in a line containing multiple blocks
-			call <sid>comment_line(pos[1], pos[2], -1, marker_l, marker_r, !commented)
+			call s:comment_line(pos[1], pos[2], -1, marker_l, marker_r, !commented)
 		else
 			" always consider entire line
-			call <sid>comment_line(pos[1], 0, -1, marker_l, marker_r, !commented)
+			call s:comment_line(pos[1], 0, -1, marker_l, marker_r, !commented)
 		endif
 	endif
 endfunction
@@ -240,7 +240,7 @@ function s:do_comment_sexy(comment)
 
 		" add marker for inner lines
 		for lnum in range(p_start[1], p_end[1])
-			call <sid>comment_line(lnum, 0, -1, b:marker.blocks_m, "", 1)
+			call s:comment_line(lnum, 0, -1, b:marker.blocks_m, "", 1)
 		endfor
 
 		" append bottom and top line
@@ -259,7 +259,7 @@ function s:do_comment_sexy(comment)
 
 		" remove inner line markers
 		for lnum in range(top + 1, bot - 1)
-			call <sid>comment_line(lnum, 0, -1, b:marker.blocks_m, "", 0)
+			call s:comment_line(lnum, 0, -1, b:marker.blocks_m, "", 0)
 		endfor
 
 		" delete top and bottom line
@@ -274,7 +274,7 @@ endfunction
 """"
 "{{{
 " update marker once buffer filetype changes
-autocmd FileType *  call <sid>update_marker()
+autocmd FileType *  call s:update_marker()
 "}}}
 
 """"
