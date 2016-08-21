@@ -15,7 +15,7 @@ let g:loaded_comment = 1
 "{{{
 let s:marker = {
 	\ "c"	: {
-		\ "line" : '// ',
+		\ "line" : '//',
 		\ "block_l" : '/* ',
 		\ "block_r" : ' */',
 		\ "blocks_l" : '/**',
@@ -26,6 +26,7 @@ let s:marker = {
 
 call extend(s:marker, { "cpp" : s:marker.c })
 call extend(s:marker, { "asm" : s:marker.c })
+call extend(s:marker, { "bc" : s:marker.c })
 "}}}
 
 """"
