@@ -1,16 +1,26 @@
-""""
-"" check init state
-""""
-"{{{
 if exists("g:loaded_comment") || &compatible
 	finish
 endif
 
 let g:loaded_comment = 1
+
+" get own script ID
+nmap <c-f11><c-f12><c-f13> <sid>
+let s:sid = "<SNR>" . maparg("<c-f11><c-f12><c-f13>", "n", 0, 1).sid . "_"
+nunmap <c-f11><c-f12><c-f13>
+
+
+""""
+"" global variables
+""""
+"{{{
+let g:comment_map_line = get(g:, "comment_map_line", "cl")
+let g:comment_map_block = get(g:, "comment_map_block", "cb")
+let g:comment_map_sexy = get(g:, "comment_map_sexy", "cs")
 "}}}
 
 """"
-"" init script variables
+"" local variables
 """"
 "{{{
 let s:marker = {
@@ -30,7 +40,7 @@ call extend(s:marker, { "bc" : s:marker.c })
 "}}}
 
 """"
-"" helper functions
+"" local functions
 """"
 "{{{
 " \brief	set buffer-local markers depending on filetype
@@ -50,7 +60,9 @@ function s:update_marker()
 		\ }
 	endif
 endfunction
+"}}}
 
+"{{{
 " \brief	search for left-hand marker within line
 "
 " \param	line	string to be searched
@@ -64,7 +76,9 @@ function s:marker_pos_l(line, marker, start)
 	let p_l = strridx(a:line, a:marker, a:start)
 	return (p_l == -1 ? stridx(a:line, a:marker, a:start) : p_l)
 endfunction
+"}}}
 
+"{{{
 " \brief	search for right-hand marker within line
 "
 " \param	line	string to be searched
@@ -76,7 +90,9 @@ endfunction
 function s:marker_pos_r(line, marker, start)
 	return (a:marker == "" ? -1 : stridx(a:line, a:marker, a:start))
 endfunction
+"}}}
 
+"{{{
 " \brief	get commented state and markers to be used for given line
 "
 " \param	line	text to check
@@ -107,7 +123,7 @@ endfunction
 "}}}
 
 """"
-"" main functions
+"" global functions
 """"
 "{{{
 " \brief	un/comment a single line
@@ -153,7 +169,9 @@ function s:comment_line(lnum, start, end, marker_l, marker_r, comment)
 
 	call setline(a:lnum, line)
 endfunction
+"}}}
 
+"{{{
 " \brief	main commenting function
 "
 " \param	mode	vim mode that the function was called in ('v' = visual, 'n' = normal)
@@ -217,7 +235,9 @@ function s:do_comment(mode, c_type)
 		endif
 	endif
 endfunction
+"}}}
 
+"{{{
 " \brief	sexy commenting function using one block for all lines to comment
 "
 " \param	comment		what to do (0 = uncomment, 1 = comment)
@@ -283,12 +303,13 @@ autocmd FileType *  call s:update_marker()
 """"
 "{{{
 " general mappings
-nnoremap <silent> cl :call <sid>do_comment('n', 'l')<cr>
-nnoremap <silent> cb :call <sid>do_comment('n', 'b')<cr>
-vnoremap <silent> cl <esc>:call <sid>do_comment('v', 'l')<cr>
-vnoremap <silent> cb <esc>:call <sid>do_comment('v', 'b')<cr>
+call util#map#n(g:comment_map_line, ":call " . s:sid . "do_comment('n', 'l')<cr>", "")
+call util#map#v(g:comment_map_line, ":call " . s:sid . "do_comment('v', 'l')<cr>", "")
+call util#map#n(g:comment_map_block, ":call " . s:sid . "do_comment('n', 'b')<cr>", "")
+call util#map#v(g:comment_map_block, ":call " . s:sid . "do_comment('v', 'b')<cr>", "")
 
 " filetype specific mappings
-autocmd FileType c,cpp nnoremap <silent> cs :call <sid>do_comment_sexy(0)<cr>
-autocmd FileType c,cpp vnoremap <silent> cs <esc>:call <sid>do_comment_sexy(1)<cr>
+autocmd FileType c,cpp 
+	\ call util#map#n(g:comment_map_sexy, ":call " . s:sid . "do_comment_sexy(0)<cr>", "")|
+	\ call util#map#v(g:comment_map_sexy, ":call " . s:sid . "do_comment_sexy(1)<cr>", "")
 "}}}
