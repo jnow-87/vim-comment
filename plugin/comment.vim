@@ -186,6 +186,15 @@ function s:do_comment(mode, c_type)
 		let p_start = getpos("'<")
 		let p_end = getpos("'>")
 
+		" exit if not handling the first line of the selection
+		"	this function will be called for every line that has been visually selected. Since
+		"	the function handles all lines within the first run make sure to exit for all other
+		"	invocations. Otherwise, the commenting state of the lines will toggle with every
+		"	invocation.
+		if p_start[1] != getpos('.')[1]
+			return
+		endif
+
 		" getpos() columns ranges are 1.., map them to 0..
 		let p_start[2] -= 1
 		let p_end[2] -= 1
