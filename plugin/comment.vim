@@ -51,9 +51,9 @@ function s:update_marker()
 		let cs = split(&commentstring, "%s")
 
 		let b:marker = {
-			\ "line" : (len(cs) > 0 ? cs[0] . " " : ""),
-			\ "block_l" : (len(cs) > 0 ? cs[0] . " " : ""),
-			\ "block_r" : (len(cs) > 1 ? " " . cs[1] : ""),
+			\ "line" : (len(cs) == 1 ? cs[0] . " " : ""),
+			\ "block_l" : (len(cs) == 2 ? cs[0] . " " : ""),
+			\ "block_r" : (len(cs) == 2 ? " " . cs[1] : ""),
 			\ "blocks_l" : "",
 			\ "blocks_m" : "",
 			\ "blocks_r" : ""
@@ -181,6 +181,12 @@ endfunction
 "
 " \return	none
 function s:do_comment(mode, c_type)
+	" use block comment if no line-comment marker is defined
+	if a:c_type == 'l' && b:marker.line == ""
+		call s:do_comment(a:mode, 'b')
+		return
+	endif
+
 	if a:mode == 'v'
 		" get selection boundaries
 		let p_start = getpos("'<")
