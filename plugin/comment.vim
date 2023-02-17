@@ -16,8 +16,8 @@ nunmap <c-f11><c-f12><c-f13>
 "{{{
 let g:comment_map_line = get(g:, "comment_map_line", "cl")
 let g:comment_map_block = get(g:, "comment_map_block", "cb")
-let g:comment_map_sexy = get(g:, "comment_map_sexy", "cs")
 "}}}
+
 
 """"
 "" local variables
@@ -38,6 +38,7 @@ call extend(s:marker, { "cpp" : s:marker.c })
 call extend(s:marker, { "asm" : s:marker.c })
 call extend(s:marker, { "bc" : s:marker.c })
 "}}}
+
 
 """"
 "" local functions
@@ -122,9 +123,6 @@ function s:get_commented(line, start, c_type)
 endfunction
 "}}}
 
-""""
-"" global functions
-""""
 "{{{
 " \brief	un/comment a single line
 "
@@ -252,66 +250,15 @@ function s:do_comment(mode, c_type)
 endfunction
 "}}}
 
-"{{{
-" \brief	sexy commenting function using one block for all lines to comment
-"
-" \param	comment		what to do (0 = uncomment, 1 = comment)
-"
-" \return	none
-function s:do_comment_sexy(comment)
-	" check if all sexy markers are define
-	if b:marker.blocks_l == "" || b:marker.blocks_r == "" || b:marker.blocks_m == ""
-		echoerr "sexy markers not defined"
-		return
-	endif
-
-	if a:comment
-		" get selection boundaries
-		let p_start = getpos("'<")
-		let p_end = getpos("'>")
-
-		" getpos() columns ranges are 1.., map them to 0..
-		let p_start[2] -= 1
-		let p_end[2] -= 1
-
-		" add marker for inner lines
-		for lnum in range(p_start[1], p_end[1])
-			call s:comment_line(lnum, 0, -1, b:marker.blocks_m, "", 1)
-		endfor
-
-		" append bottom and top line
-		call append(p_end[1], b:marker.blocks_r)
-		call append(p_start[1] - 1, b:marker.blocks_l)
-	else
-		" get current line and search enclosing marker
-		let lnum = line('.')
-		let top = search(escape(b:marker.blocks_l, '*'), "bcnW")
-		let bot = search(escape(b:marker.blocks_r, '*'), "cnW")
-
-		" check validity
-		if top == 0 || bot == 0 || top > lnum || bot < lnum
-			return
-		endif
-
-		" remove inner line markers
-		for lnum in range(top + 1, bot - 1)
-			call s:comment_line(lnum, 0, -1, b:marker.blocks_m, "", 0)
-		endfor
-
-		" delete top and bottom line
-		exec ":" . bot . "d"
-		exec ":" . top . "d"
-	endif
-endfunction
-"}}}
 
 """"
 "" autocommands
 """"
 "{{{
 " update marker once buffer filetype changes
-autocmd FileType *  call s:update_marker()
+autocmd FileType * call s:update_marker()
 "}}}
+
 
 """"
 "" mappings
@@ -322,9 +269,4 @@ call util#map#n(g:comment_map_line, ":call " . s:sid . "do_comment('n', 'l')<cr>
 call util#map#v(g:comment_map_line, ":call " . s:sid . "do_comment('v', 'l')<cr>", "")
 call util#map#n(g:comment_map_block, ":call " . s:sid . "do_comment('n', 'b')<cr>", "")
 call util#map#v(g:comment_map_block, ":call " . s:sid . "do_comment('v', 'b')<cr>", "")
-
-" filetype specific mappings
-autocmd FileType c,cpp 
-	\ call util#map#n(g:comment_map_sexy, ":call " . s:sid . "do_comment_sexy(0)<cr>", "")|
-	\ call util#map#v(g:comment_map_sexy, ":call " . s:sid . "do_comment_sexy(1)<cr>", "")
 "}}}
