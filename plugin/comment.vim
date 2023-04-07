@@ -88,4 +88,4 @@ autocmd FileType * call s:update_patterns()
 """"
 
 call util#map#n(g:comment_map, ":call " . s:sid . "comment()<cr>", "")
-call util#map#v(g:comment_map, ":call " . s:sid . "comment()<cr>", "")
+call util#map#v(g:comment_map, ":call " . s:sid . "comment()<cr>", "", 1)
